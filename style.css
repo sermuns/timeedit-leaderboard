@@ -1,0 +1,94 @@
+@font-face {
+	font-family: "Hanken Grotesk";
+	src: url("/HankenGrotesk-VariableFont_wght.ttf");
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "Hanken Grotesk";
+	src: url("/HankenGrotesk-Italic-VariableFont_wght.ttf");
+	font-style: italic;
+}
+
+:root {
+	--background-color: hsl(159, 40%, 11%);
+	--text-color: hsl(159, 40%, 95%);
+	--line-width: round(0.1rem, 1px);
+	--accent-color: hsl(159, 100%, 90%);
+
+	background-color: var(--background-color);
+	color: var(--text-color);
+
+	font-family: "Hanken Grotesk", sans-serif;
+}
+
+body {
+	flex-direction: column;
+	margin: 0;
+	height: 100vh;
+
+	padding: 1rem;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+}
+
+input {
+	font-family: inherit;
+	font-size: inherit;
+}
+
+main {
+	flex: 1;
+	width: min(100%, 60rem);
+	margin: auto;
+}
+
+footer {
+	display: flex;
+	flex-direction: column;
+	text-align: center;
+}
+
+nav {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 1rem;
+
+	a {
+		text-decoration: none;
+		&.active {
+			pointer-events: none;
+			text-decoration: underline;
+		}
+	}
+}
+
+input[type="checkbox"],
+button,
+a,
+a > * {
+	&:active {
+		transform: translateY(1px);
+	}
+}
+
+input[type="checkbox"],
+label {
+	cursor: pointer;
+}
+
+a {
+	color: var(--accent-color);
+	&:hover {
+		filter: brightness(1.2);
+	}
+	&[target="_blank"]::after {
+		content: "⮺";
+		color: var(--text-color);
+		font-size: 1.1em;
+		margin-left: 0.1em;
+		display: inline-block;
+	}
+}
