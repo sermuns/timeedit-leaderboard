@@ -70,7 +70,7 @@ button,
 a,
 a > * {
 	&:active {
-		transform: translateY(1px);
+		transform: translateY(10%);
 	}
 }
 
