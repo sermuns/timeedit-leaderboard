@@ -1,6 +1,10 @@
 [workspace]
 resolver = "3"
 members = [
-		  "timeedit-leaderboard",
-		  "xtask",
+	"timeedit-leaderboard",
+	"xtask",
 ]
+
+[workspace.dependencies]
+anyhow = "1"
+postcard = "1.1"
