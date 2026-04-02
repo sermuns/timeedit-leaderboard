@@ -1,7 +1,6 @@
-[package]
-name = "timeedit-leaderboard"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-leptos = { version = "0.8", features = ["csr"] }
+[workspace]
+resolver = "3"
+members = [
+		  "timeedit-leaderboard",
+		  "xtask",
+]
