@@ -1,3 +1,4 @@
+// use jiff::Timestamp;
 use futures::{StreamExt, TryStreamExt, stream};
 use serde::{Deserialize, Serialize};
 use tracing::info;
@@ -9,6 +10,8 @@ pub struct LeaderboardEntry {
     pub name: String,
     pub object_id: u32,
     pub num_bookings: u32,
+    // pub earliest_booking: Timestamp,
+    // pub latest_booking: Timestamp,
 }
 
 #[derive(Debug, Deserialize)]
