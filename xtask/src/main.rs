@@ -76,8 +76,12 @@ async fn main() -> anyhow::Result<()> {
         }
         Commands::Oneshot => {
             let objects = fetch_teachers().await?;
+            std::fs::write("objects.bin", postcard::to_allocvec(&objects)?)?;
+
             let mut leaderboard = leaderboard::generate_leaderboard(objects).await?;
             leaderboard.sort_by_key(|e| cmp::Reverse(e.num_bookings));
+            std::fs::write("leaderboard.bin", postcard::to_allocvec(&leaderboard)?)?;
+
             std::fs::write("index.html", html::generate_html(leaderboard).into_string())?;
         }
     }
