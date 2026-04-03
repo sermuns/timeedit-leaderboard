@@ -16,7 +16,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - uses: Swatinem/rust-cache@v
+      - uses: Swatinem/rust-cache@v2
 
       - name: fetch data and build html
         run: cargo xtask oneshot
