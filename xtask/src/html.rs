@@ -5,10 +5,14 @@ use crate::leaderboard::LeaderboardEntry;
 const TITLE: &str = "TimeEdit Leaderboard";
 
 pub fn generate_html(leaderboard: Vec<LeaderboardEntry>) -> Markup {
-    let top = leaderboard
-        .iter()
-        // .take(TAKE_NUM)
-        .filter(|entry| entry.name.trim() != "Amanuens" && entry.num_bookings > 0);
+    let mut leaderboard = leaderboard;
+    leaderboard.retain(|entry| entry.name.trim() != "Amanuens" && entry.num_bookings > 0);
+
+    // let total_bookings = leaderboard.iter().map(|e| e.num_bookings).sum::<u32>();
+
+    // let entries_with_percentage = leaderboard
+    //     .iter()
+    //     .map(|e| (e, 100. * e.num_bookings as f64 / total_bookings as f64));
 
     html! {
         (DOCTYPE)
@@ -19,7 +23,7 @@ pub fn generate_html(leaderboard: Vec<LeaderboardEntry>) -> Markup {
         }
         body {
             h1 { (TITLE) " | Linköping university" }
-            p { "In the time-period 2025-08-01 to 2026-07-01." }
+            p { "In the time-period 2025-08-01 to now (" (jiff::Zoned::now()) "." }
             p { "People with zero bookings are omitted from the list." }
             p {
                 i {
@@ -40,7 +44,7 @@ pub fn generate_html(leaderboard: Vec<LeaderboardEntry>) -> Markup {
                     }
                 }
                 tbody {
-                    @for (i, entry) in top.enumerate() {
+                    @for (i, entry) in leaderboard.iter().enumerate() {
                         tr {
                             td { (i + 1) }
                             td style="width: 15em" { (entry.name) }
