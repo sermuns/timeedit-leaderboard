@@ -3,8 +3,6 @@ use maud::{DOCTYPE, Markup, html};
 use crate::leaderboard::LeaderboardEntry;
 
 const TITLE: &str = "TimeEdit Leaderboard";
-const BOOKINGS_HTML_BASE_URL: &str =
-    "https://cloud.timeedit.net/liu/web/schema/ri.html?sid=3&p=20250101,20270101&objects=";
 
 pub fn generate_html(leaderboard: Vec<LeaderboardEntry>) -> Markup {
     let top = leaderboard
@@ -36,17 +34,31 @@ pub fn generate_html(leaderboard: Vec<LeaderboardEntry>) -> Markup {
                     tr {
                         th { "Rank" }
                         th { "Name" }
+                        th {}
+                        th {}
                         th { "Number of Bookings" }
                     }
                 }
                 tbody {
-                    @for (rank, entry) in top.enumerate() {
+                    @for (i, entry) in top.enumerate() {
                         tr {
-                            td { (rank + 1) }
+                            td { (i + 1) }
+                            td style="width: 15em" { (entry.name) }
                             td {
-                                a target="_blank" href={ (BOOKINGS_HTML_BASE_URL) (entry.object_id) } {
-                                    (entry.name)
-                                }
+                                a   target="_blank"
+                                    href={
+                                        "https://cloud.timeedit.net/liu/web/schema/ri.html?sid=3&p=20250101,20270101&objects="
+                                        (entry.object_id)
+                                    }
+                                { "[1]" }
+                            }
+                            td {
+                                a   target="_blank"
+                                    href={
+                                        "https://cloud.timeedit.net/liu/web/schema/ri.html?p=20250101,20270101&objects="
+                                        (entry.object_id)
+                                    }
+                                { "[2]" }
                             }
                             td { (entry.num_bookings) }
                         }
