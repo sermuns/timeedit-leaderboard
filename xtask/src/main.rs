@@ -1,4 +1,4 @@
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use postcard::to_allocvec;
 use tracing::info;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
@@ -12,8 +12,14 @@ struct Cli {
     #[arg(short, long, action = clap::ArgAction::Count)]
     verbosity: u8,
 
-    #[arg(long)]
-    load: bool,
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    Load,
+    Fetch,
 }
 
 #[tokio::main]
@@ -33,18 +39,19 @@ async fn main() -> anyhow::Result<()> {
         .with(EnvFilter::from_default_env())
         .init();
 
-    if cli.load {
-        let data = std::fs::read("objects.bin")?;
-        let objects: Vec<TeacherObject> = postcard::from_bytes(&data)?;
-        info!("loaded {} objects", objects.len());
-        std::fs::write("objects.json", serde_json::to_string_pretty(&objects)?)?;
-        return Ok(());
+    match &cli.command {
+        Commands::Load => {
+            let data = std::fs::read("objects.bin")?;
+            let objects: Vec<TeacherObject> = postcard::from_bytes(&data)?;
+            info!("loaded {} objects", objects.len());
+            // std::fs::write("objects.json", serde_json::to_string_pretty(&objects)?)?;
+        }
+        Commands::Fetch => {
+            let all_objects = fetch_teachers().await?;
+            let binary_data: Vec<u8> = to_allocvec(&all_objects)?;
+            std::fs::write("objects.bin", binary_data)?;
+        }
     }
-
-    let all_objects = fetch_teachers().await?;
-
-    let data: Vec<u8> = to_allocvec(&all_objects)?;
-    std::fs::write("objects.bin", data)?;
 
     Ok(())
 }
