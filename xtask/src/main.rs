@@ -11,7 +11,7 @@ mod fetch;
 mod html;
 mod leaderboard;
 
-pub const FETCH_CONCURRENCY: usize = 1000;
+pub const FETCH_CONCURRENCY: usize = 512;
 
 #[derive(Parser)]
 struct Cli {
@@ -24,6 +24,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// do EVERYTHING! probaly takes 3 minutes..
+    Oneshot,
     FetchObjects,
     FetchLeaderboard,
     DumpLeaderboardBin,
@@ -70,6 +72,12 @@ async fn main() -> anyhow::Result<()> {
             let leaderboard: Vec<LeaderboardEntry> =
                 postcard::from_bytes(&std::fs::read("leaderboard.bin")?)?;
 
+            std::fs::write("index.html", html::generate_html(leaderboard).into_string())?;
+        }
+        Commands::Oneshot => {
+            let objects = fetch_teachers().await?;
+            let mut leaderboard = leaderboard::generate_leaderboard(objects).await?;
+            leaderboard.sort_by_key(|e| cmp::Reverse(e.num_bookings));
             std::fs::write("index.html", html::generate_html(leaderboard).into_string())?;
         }
     }
