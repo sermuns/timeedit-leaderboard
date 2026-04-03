@@ -64,7 +64,7 @@ async fn main() -> anyhow::Result<()> {
             let leaderboard: Vec<LeaderboardEntry> =
                 postcard::from_bytes(&std::fs::read("leaderboard.bin")?)?;
 
-            eprintln!("{:#?}", leaderboard);
+            println!("{:#?}", leaderboard);
         }
         Commands::Html => {
             let leaderboard: Vec<LeaderboardEntry> =
