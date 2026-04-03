@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
+use crate::FETCH_CONCURRENCY;
+
 #[derive(Deserialize, Debug)]
 pub struct ObjectSearchResponse {
     pub count: u16,
@@ -20,14 +22,13 @@ pub async fn fetch_teachers() -> anyhow::Result<Vec<TeacherObject>> {
     let mut all_objects = Vec::new();
     const TEACHER: &str = "184";
     const MAX: u16 = 100;
-    const CONCURRENCY: usize = 30; // Number of concurrent requests
     let max_str = MAX.to_string();
 
     let mut start = 0;
     let mut tasks = Vec::new();
 
     // Launch initial batch of concurrent requests
-    for i in 0..CONCURRENCY {
+    for i in 0..FETCH_CONCURRENCY {
         let client = client.clone();
         let max_str = max_str.clone();
         let current_start = start + (i * MAX as usize);
@@ -46,13 +47,13 @@ pub async fn fetch_teachers() -> anyhow::Result<Vec<TeacherObject>> {
 
             info!("fetched {}", resp.url());
             let data: ObjectSearchResponse = resp.json().await?;
-            Ok::<_, anyhow::Error>((current_start, data))
+            Ok((current_start, data))
         });
 
         tasks.push(task);
     }
 
-    start += CONCURRENCY * MAX as usize;
+    start += FETCH_CONCURRENCY * MAX as usize;
 
     // Process results and launch new requests as needed
     while !tasks.is_empty() {

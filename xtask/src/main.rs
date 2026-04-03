@@ -1,16 +1,22 @@
 use clap::{Parser, Subcommand};
-use postcard::to_allocvec;
-use tracing::info;
-use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+use clap_verbosity_flag::{InfoLevel, Verbosity};
+use std::{cmp, fs::File, io::BufReader};
 
-use crate::teachers::{TeacherObject, fetch_teachers};
+use crate::{
+    fetch::{TeacherObject, fetch_teachers},
+    leaderboard::LeaderboardEntry,
+};
 
-mod teachers;
+mod fetch;
+mod html;
+mod leaderboard;
+
+pub const FETCH_CONCURRENCY: usize = 1000;
 
 #[derive(Parser)]
 struct Cli {
-    #[arg(short, long, action = clap::ArgAction::Count)]
-    verbosity: u8,
+    #[command(flatten)]
+    verbosity: Verbosity<InfoLevel>,
 
     #[command(subcommand)]
     command: Commands,
@@ -18,38 +24,53 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Load,
-    Fetch,
+    FetchObjects,
+    FetchLeaderboard,
+    DumpLeaderboardBin,
+    /// Debug print leaderboard
+    Print,
+    /// Write leaderboard as static HTML
+    Html,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    let log_env = match cli.verbosity {
-        0 => "warn",
-        1 => "info",
-        2 => "debug",
-        _ => "trace",
-    };
-    unsafe { std::env::set_var("RUST_LOG", log_env) };
-
-    tracing_subscriber::registry()
-        .with(fmt::layer())
-        .with(EnvFilter::from_default_env())
+    tracing_subscriber::fmt()
+        .with_max_level(cli.verbosity)
         .init();
 
     match &cli.command {
-        Commands::Load => {
-            let data = std::fs::read("objects.bin")?;
-            let objects: Vec<TeacherObject> = postcard::from_bytes(&data)?;
-            info!("loaded {} objects", objects.len());
-            // std::fs::write("objects.json", serde_json::to_string_pretty(&objects)?)?;
-        }
-        Commands::Fetch => {
-            let all_objects = fetch_teachers().await?;
-            let binary_data: Vec<u8> = to_allocvec(&all_objects)?;
+        Commands::FetchObjects => {
+            let objects = fetch_teachers().await?;
+            let binary_data = postcard::to_allocvec(&objects)?;
             std::fs::write("objects.bin", binary_data)?;
+        }
+        Commands::FetchLeaderboard => {
+            let objects: Vec<TeacherObject> = postcard::from_bytes(&std::fs::read("objects.bin")?)?;
+            let mut leaderboard = leaderboard::generate_leaderboard(objects).await?;
+            leaderboard.sort_by_key(|e| cmp::Reverse(e.num_bookings));
+            std::fs::write("leaderboard.bin", postcard::to_allocvec(&leaderboard)?)?;
+        }
+        Commands::DumpLeaderboardBin => {
+            let leaderboard_json_file_reader = BufReader::new(File::open("leaderboard.json")?);
+            let mut leaderboard: Vec<LeaderboardEntry> =
+                serde_json::from_reader(leaderboard_json_file_reader)?;
+            leaderboard.sort_by_key(|e| cmp::Reverse(e.num_bookings));
+            std::fs::write("leaderboard.bin", postcard::to_allocvec(&leaderboard)?)?;
+        }
+        Commands::Print => {
+            let leaderboard: Vec<LeaderboardEntry> =
+                postcard::from_bytes(&std::fs::read("leaderboard.bin")?)?;
+
+            eprintln!("{:#?}", leaderboard);
+        }
+        Commands::Html => {
+            let leaderboard: Vec<LeaderboardEntry> =
+                postcard::from_bytes(&std::fs::read("leaderboard.bin")?)?;
+
+            std::fs::write("index.html", html::generate_html(leaderboard).into_string())?;
         }
     }
 
