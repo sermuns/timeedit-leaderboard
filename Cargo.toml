@@ -8,3 +8,6 @@ members = [
 [workspace.dependencies]
 anyhow = "1"
 postcard = "1.1"
+
+[workspace.package]
+repository = "https://github.com/sermuns/timeedit-leaderboard"

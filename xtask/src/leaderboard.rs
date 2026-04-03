@@ -34,7 +34,7 @@ struct Info {
 //     pub columns: [String; 9],
 // }
 
-const BOOKINGS_BASE_URL: &str =
+const BOOKINGS_JSON_BASE_URL: &str =
     "https://cloud.timeedit.net/liu/web/schema/ri.json?p=20250101,20270101&objects=";
 
 pub async fn generate_leaderboard(
@@ -47,7 +47,7 @@ pub async fn generate_leaderboard(
             let client = client.clone();
             async move {
                 let response: CalendarResponse = client
-                    .get(format!("{}{}", BOOKINGS_BASE_URL, o.id))
+                    .get(format!("{}{}", BOOKINGS_JSON_BASE_URL, o.id))
                     .send()
                     .await?
                     .json()
